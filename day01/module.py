@@ -24,7 +24,7 @@ def count_increases(infile_path: str, window_size: int) -> int:
     return increases
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     INPUT_FILE = 'input.txt'
     part1_answer = count_increases(INPUT_FILE, 1)
     print(f'Part 1: {part1_answer}')
