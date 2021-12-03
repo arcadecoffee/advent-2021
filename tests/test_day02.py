@@ -1,5 +1,5 @@
 """
-Tests for Day 150
+Tests for Day 2
 """
 
 from day02.module import calculate_position_part1, calculate_position_part2,\
