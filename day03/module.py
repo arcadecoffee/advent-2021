@@ -1,6 +1,6 @@
 """
-Advent of Code 2021 - Day 2
-https://adventofcode.com/2021/day/2
+Advent of Code 2021 - Day 3
+https://adventofcode.com/2021/day/3
 """
 from typing import List
 
