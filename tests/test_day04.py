@@ -1,5 +1,5 @@
 """
-Tests for Day 3
+Tests for Day 4
 """
 
 from day04.module import find_winner, find_loser, \
