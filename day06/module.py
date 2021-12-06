@@ -40,4 +40,4 @@ def calculate_births(infile_path: str, days: int) -> [int, List[int]]:
 
 if __name__ == '__main__':  # pragma: no cover
     print(f'Part 1: {calculate_births(FULL_INPUT_FILE, 80)[0]}')
-    print(f'Part 1: {calculate_births(FULL_INPUT_FILE, 256)[0]}')
+    print(f'Part 2: {calculate_births(FULL_INPUT_FILE, 256)[0]}')
