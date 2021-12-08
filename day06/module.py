@@ -15,14 +15,6 @@ def load_data(infile_path: str) -> List[int]:
         return [int(i) for i in infile.readline().strip().split(',')]
 
 
-def find_straight_lines(data: List[Dict[str, int]]) -> List[Dict[str, int]]:
-    straight_lines = []
-    for data_row in data:
-        if data_row['x1'] == data_row['x2'] or data_row['y1'] == data_row['y2']:
-            straight_lines.append(data_row)
-    return straight_lines
-
-
 def calculate_births(infile_path: str, days: int) -> [int, List[int]]:
     timeline = [0 for _ in range(days + 9)]
 
