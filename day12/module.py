@@ -24,20 +24,20 @@ def load_data(infile_path: str) -> List[List[str]]:
 
 def find_routes(connections: List[List[str]], location: str, visited: List[str],
                 revisit: bool = False) -> List[List[str]]:
-    routes = []
     if location == 'end':
         return [['end']]
     else:
-        visited += [location]
-        if max(Counter([i for i in visited if i.islower()]).values()) == 2:
-            revisit = False
-        for next_location in [next(filter(lambda l: l != location, i))
-                              for i in connections if location in i]:
-            if next_location != 'start':
-                if next_location.isupper() or next_location not in visited or revisit:
-                    new_routes = find_routes(connections, next_location, visited.copy(), revisit)
-                    for route in new_routes:
-                        routes.append([location] + route)
+        routes = []
+        visited = visited.copy()
+        visited.append(location)
+        revisit = revisit and max(Counter([i for i in visited if i.islower()]).values()) == 1
+        for next_location in \
+                [next(filter(lambda l: l != location, i)) for i in connections if location in i]:
+            if next_location != 'start' and \
+                    (revisit or next_location.isupper() or next_location not in visited):
+                new_routes = find_routes(connections, next_location, visited, revisit)
+                for route in new_routes:
+                    routes.append([location] + route)
         return routes
 
 
