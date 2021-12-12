@@ -3,7 +3,6 @@ Advent of Code 2021 - Day 12
 https://adventofcode.com/2021/day/12
 """
 
-from collections import Counter
 from typing import List
 
 DAY = 12
@@ -28,9 +27,8 @@ def find_routes(connections: List[List[str]], location: str, visited: List[str],
         return [['end']]
     else:
         routes = []
-        visited = visited.copy()
-        visited.append(location)
-        revisit = revisit and max(Counter([i for i in visited if i.islower()]).values()) == 1
+        revisit = revisit and (location.isupper() or location not in visited)
+        visited = visited + [location]
         for next_location in \
                 [next(filter(lambda l: l != location, i)) for i in connections if location in i]:
             if next_location != 'start' and \
