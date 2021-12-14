@@ -4,27 +4,8 @@ Tests for Day 14
 
 from collections import Counter
 
-from day14.module import part_1, part_2, template_expander, pair_counter, \
+from day14.module import part_1, part_2, pair_counter, \
     FULL_INPUT_FILE, TEST_INPUT_FILE
-
-
-def test_template_expander():
-    assert ''.join(template_expander(TEST_INPUT_FILE, 0)) == 'NNCB'
-    assert ''.join(template_expander(TEST_INPUT_FILE, 1)) == 'NCNBCHB'
-    assert ''.join(template_expander(TEST_INPUT_FILE, 2)) == 'NBCCNBBBCBHCB'
-    assert ''.join(template_expander(TEST_INPUT_FILE, 3)) == 'NBBBCNCCNBBNBNBBCHBHHBCHB'
-    assert ''.join(template_expander(TEST_INPUT_FILE, 4)) == \
-           'NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB'
-    assert len(''.join(template_expander(TEST_INPUT_FILE, 5))) == 97
-    assert len(''.join(template_expander(TEST_INPUT_FILE, 10))) == 3073
-
-
-def test_template_expander_counts():
-    c = Counter(template_expander(TEST_INPUT_FILE, 10))
-    assert c['B'] == 1749
-    assert c['C'] == 298
-    assert c['H'] == 161
-    assert c['N'] == 865
 
 
 def test_pair_counter_counts():

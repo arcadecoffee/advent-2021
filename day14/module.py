@@ -24,21 +24,6 @@ def load_data(infile_path: str) -> Tuple[str, Dict[str, str]]:
     return template, rules
 
 
-def pair_expander(left: str, right: str, rules: Dict[str, str], steps: int):
-    if steps == 0:
-        yield right
-    else:
-        yield from pair_expander(left, rules[left + right], rules, steps - 1)
-        yield from pair_expander(rules[left + right], right, rules, steps - 1)
-
-
-def template_expander(infile_path: str, steps: int):
-    template, rules = load_data(infile_path)
-    yield template[0]
-    for i in range(1, len(template)):
-        yield from pair_expander(template[i - 1], template[i], rules, steps)
-
-
 def pair_counter(infile_path: str, steps: int) -> Dict[str, int]:
     template, rules = load_data(infile_path)
 
@@ -64,14 +49,17 @@ def pair_counter(infile_path: str, steps: int) -> Dict[str, int]:
     return {k: int(v / 2) for k, v in counts.items()}
 
 
-def part_1(infile_path: str) -> int:
-    counts = pair_counter(infile_path, 10)
+def find_answer(infile_path: str, steps: int) -> int:
+    counts = pair_counter(infile_path, steps)
     return max(counts.values()) - min(counts.values())
+
+
+def part_1(infile_path: str) -> int:
+    return find_answer(infile_path, 10)
 
 
 def part_2(infile_path: str) -> int:
-    counts = pair_counter(infile_path, 40)
-    return max(counts.values()) - min(counts.values())
+    return find_answer(infile_path, 40)
 
 
 if __name__ == '__main__':  # pragma: no cover
