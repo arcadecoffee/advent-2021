@@ -3,8 +3,9 @@ Advent of Code 2021 - Day 14
 https://adventofcode.com/2021/day/14
 """
 
-from collections import Counter
-from typing import Tuple, Dict
+from collections import defaultdict
+from itertools import tee
+from typing import Tuple, Dict, Iterable
 
 DAY = 14
 
@@ -40,24 +41,25 @@ def template_expander(infile_path: str, steps: int):
 
 def pair_counter(infile_path: str, steps: int) -> Dict[str, int]:
     template, rules = load_data(infile_path)
-    pairs = {}
-    counts = {}
-    for i in range(1, len(template)):
-        pairs[template[i - 1] + template[i]] = pairs.get(template[i - 1] + template[i], 0) + 1
+
+    pairs = defaultdict(int)
+    a, b = tee(template)
+    next(b, None)
+    for i, j in zip(a, b):
+        pairs[i + j] += 1
 
     for i in range(steps):
-        new_pairs = {}
-        counts = {}
+        new_pairs = defaultdict(int)
         for key, value in pairs.items():
             c = rules[key]
-            new_pairs[key[0] + c] = new_pairs.get(key[0] + c, 0) + value
-            new_pairs[c + key[1]] = new_pairs.get(c + key[1], 0) + value
-            for k in [key[0], c, c, key[1]]:
-                counts[k] = counts.get(k, 0) + value
+            new_pairs[key[0] + c] += value
+            new_pairs[c + key[1]] += value
         pairs = new_pairs
 
-    for k in [template[0], template[-1]]:
-        counts[k] = counts.get(k, 0) + 1
+    counts = defaultdict(int)
+    for k, v in list(pairs.items()) + [(template[0], 1), (template[-1], 1)]:
+        for c in k:
+            counts[c] += v
 
     return {k: int(v / 2) for k, v in counts.items()}
 
