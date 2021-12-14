@@ -38,7 +38,7 @@ def template_expander(infile_path: str, steps: int):
         yield from pair_expander(template[i - 1], template[i], rules, steps)
 
 
-def pair_counter(infile_path: str, steps: int) -> Dict[str, float]:
+def pair_counter(infile_path: str, steps: int) -> Dict[str, int]:
     template, rules = load_data(infile_path)
     pairs = {}
     counts = {}
@@ -47,25 +47,29 @@ def pair_counter(infile_path: str, steps: int) -> Dict[str, float]:
 
     for i in range(steps):
         new_pairs = {}
-        counts = {template[0]: 0.5, template[-1]: 0.5}
+        counts = {}
         for key, value in pairs.items():
             c = rules[key]
             new_pairs[key[0] + c] = new_pairs.get(key[0] + c, 0) + value
             new_pairs[c + key[1]] = new_pairs.get(c + key[1], 0) + value
-            for k in [key[0], key[1], c, c]:
-                counts[k] = counts.get(k, 0) + (value / 2)
+            for k in [key[0], c, c, key[1]]:
+                counts[k] = counts.get(k, 0) + value
         pairs = new_pairs
-    return counts
+
+    for k in [template[0], template[-1]]:
+        counts[k] = counts.get(k, 0) + 1
+
+    return {k: int(v / 2) for k, v in counts.items()}
 
 
 def part_1(infile_path: str) -> int:
     counts = pair_counter(infile_path, 10)
-    return int(max(counts.values()) - min(counts.values()))
+    return max(counts.values()) - min(counts.values())
 
 
 def part_2(infile_path: str) -> int:
     counts = pair_counter(infile_path, 40)
-    return int(max(counts.values()) - min(counts.values()))
+    return max(counts.values()) - min(counts.values())
 
 
 if __name__ == '__main__':  # pragma: no cover
