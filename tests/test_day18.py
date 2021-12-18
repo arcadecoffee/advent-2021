@@ -2,45 +2,177 @@
 Tests for Day 18
 """
 
-from day18.module import part_1, part_2, explode, \
-    FULL_INPUT_FILE, TEST_INPUT_FILE
+from day18.module import part_1, part_2, add, explode, split, reduce, sum_list, sum_file, \
+    calculate_magnitude, FULL_INPUT_FILE, TEST_INPUT_FILE_1, TEST_INPUT_FILE_2
+
+ADD = [
+    {
+        'in': ['[[[[4,3],4],4],[7,[[8,4],9]]]', '[1,1]'],
+        'out': '[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]'
+    },
+]
 
 
-def test_explode_1():
-    assert explode('[[[[[9,8],1],2],3],4]') == '[[[[0,9],2],3],4]'
+def test_adds():
+    for a in ADD:
+        assert add(*a['in']) == a['out']
 
 
-def test_explode_2():
-    assert explode('[7,[6,[5,[4,[3,2]]]]]') == '[7,[6,[5,[7,0]]]]'
+EXPLODE = [
+    {
+        'in': '[[[[0,9],2],3],4]',
+        'out': '[[[[0,9],2],3],4]'
+     },
+    {
+        'in': '[[[[[9,8],1],2],3],4]',
+        'out': '[[[[0,9],2],3],4]'
+    },
+    {
+        'in': '[7,[6,[5,[4,[3,2]]]]]',
+        'out': '[7,[6,[5,[7,0]]]]'
+    },
+    {
+        'in': '[[6,[5,[4,[3,2]]]],1]',
+        'out': '[[6,[5,[7,0]]],3]'
+    },
+    {
+        'in': '[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]',
+        'out': '[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]'
+    },
+    {
+        'in': '[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]',
+        'out': '[[3,[2,[8,0]]],[9,[5,[7,0]]]]'
+    },
+    {
+        'in': '[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]',
+        'out': '[[[[0,7],4],[7,[[8,4],9]]],[1,1]]'
+    },
+    {
+        'in': '[[[[0,7],4],[7,[[8,4],9]]],[1,1]]',
+        'out': '[[[[0,7],4],[15,[0,13]]],[1,1]]'
+    },
+    {
+        'in': '[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]',
+        'out': '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'
+    },
+]
 
 
-def test_explode_3():
-    assert explode('[[6,[5,[4,[3,2]]]],1]') == '[[6,[5,[7,0]]],3]'
+def test_explodes():
+    for e in EXPLODE:
+        assert explode(e['in']) == e['out']
 
 
-def test_explode_4():
-    assert explode('[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]') == '[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]'
+SPLIT = [
+    {
+        'in': '[[[[0,7],4],[15,[0,13]]],[1,1]]',
+        'out': '[[[[0,7],4],[[7,8],[0,13]]],[1,1]]'
+    },
+    {
+        'in': '[[[[0,7],4],[[7,8],[0,13]]],[1,1]]',
+        'out': '[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]'
+    },
+]
 
 
-def test_explode_5():
-    assert explode('[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]') == '[[3,[2,[8,0]]],[9,[5,[7,0]]]]'
+def test_splits():
+    for s in SPLIT:
+        assert split(s['in']) == s['out']
+
+
+def test_reduce():
+    assert reduce('[[[[[4,3],4],4],[7,[[8,4],9]]],[1,1]]') == '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]'
+
+
+SUM_LIST = [
+    {
+        'in': ['[1,1]', '[2,2]', '[3,3]', '[4,4]'],
+        'out': '[[[[1,1],[2,2]],[3,3]],[4,4]]'
+    },
+    {
+        'in': ['[1,1]', '[2,2]', '[3,3]', '[4,4]', '[5,5]'],
+        'out': '[[[[3,0],[5,3]],[4,4]],[5,5]]'
+    },
+    {
+        'in': ['[1,1]', '[2,2]', '[3,3]', '[4,4]', '[5,5]', '[6,6]'],
+        'out': '[[[[5,0],[7,4]],[5,5]],[6,6]]'
+    },
+]
+
+
+def test_sum_list():
+    for sl in SUM_LIST:
+        assert sum_list(sl['in']) == sl['out']
+
+
+def test_sum_file():
+    assert sum_file(TEST_INPUT_FILE_1) == '[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]'
+
+
+CALCULATE_MAGNITUDE = [
+    {
+        'in': '[9,1]',
+        'out': 29
+    },
+    {
+        'in': '[1,9]',
+        'out': 21
+    },
+    {
+        'in': '[[9,1],[1,9]]',
+        'out': 129
+    },
+    {
+        'in': '[[1,2],[[3,4],5]]',
+        'out': 143
+    },
+    {
+        'in': '[[[[0,7],4],[[7,8],[6,0]]],[8,1]]',
+        'out': 1384
+    },
+    {
+        'in': '[[[[1,1],[2,2]],[3,3]],[4,4]]',
+        'out': 445
+    },
+    {
+        'in': '[[[[3,0],[5,3]],[4,4]],[5,5]]',
+        'out': 791
+    },
+    {
+        'in': '[[[[5,0],[7,4]],[5,5]],[6,6]]',
+        'out': 1137
+    },
+    {
+        'in': '[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]',
+        'out': 3488
+    },
+    {
+        'in': '[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]',
+        'out': 4140
+    },
+]
+
+
+def test_calculate_magnitude():
+    for cm in CALCULATE_MAGNITUDE:
+        assert calculate_magnitude(cm['in']) == cm['out']
 
 
 def test_part_1():
-    result = part_1(TEST_INPUT_FILE)
-    assert result == 0
+    result = part_1(TEST_INPUT_FILE_2)
+    assert result == 4140
 
 
 def test_part_1_full():
     result = part_1(FULL_INPUT_FILE)
-    assert result == 0
+    assert result == 3734
 
 
-def test_part_2():
-    result = part_2(TEST_INPUT_FILE)
-    assert result == 0
-
-
-def test_part_2_full():
-    result = part_2(FULL_INPUT_FILE)
-    assert result == 0
+# def test_part_2():
+#     result = part_2(TEST_INPUT_FILE)
+#     assert result == 0
+#
+#
+# def test_part_2_full():
+#     result = part_2(FULL_INPUT_FILE)
+#     assert result == 0
