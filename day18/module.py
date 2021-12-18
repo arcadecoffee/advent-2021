@@ -28,7 +28,7 @@ class SnailFish:
         return (3 * l) + (2 * r)
 
     @classmethod
-    def parse_snailfish(cls, snailfish_string: str, depth: int = 0):
+    def parse(cls, snailfish_string: str, depth: int = 0):
         if snailfish_string.isdigit():
             return int(snailfish_string)
         else:
@@ -39,8 +39,8 @@ class SnailFish:
                 elif snailfish_string[i] == ']':
                     bracket_depth -= 1
                 elif snailfish_string[i] == ',' and bracket_depth == 1:
-                    return SnailFish(cls.parse_snailfish(snailfish_string[1:i], depth + 1),
-                                     cls.parse_snailfish(snailfish_string[i + 1: -1], depth + 1),
+                    return SnailFish(cls.parse(snailfish_string[1:i], depth + 1),
+                                     cls.parse(snailfish_string[i + 1: -1], depth + 1),
                                      depth + 1)
 
 
@@ -110,17 +110,28 @@ def sum_file(infile_path: str) -> str:
 
 
 def calculate_magnitude(string: str) -> int:
-    snailfish = SnailFish.parse_snailfish(string)
+    snailfish = SnailFish.parse(string)
     return snailfish.magnitude
 
 
+def max_magnitude(infile_path: str) -> int:
+    rows = load_data(infile_path)
+    max_found = 0
+    for row1 in rows:
+        for row2 in rows:
+            if not row1 == row2:
+                m = SnailFish.parse(sum_list([row1, row2])).magnitude
+                if m > max_found:
+                    max_found = m
+    return max_found
+
+
 def part_1(infile_path: str) -> int:
-    return SnailFish.parse_snailfish(sum_file(infile_path)).magnitude
+    return SnailFish.parse(sum_file(infile_path)).magnitude
 
 
 def part_2(infile_path: str) -> int:
-    data = load_data(infile_path)
-    return -1
+    return max_magnitude(infile_path)
 
 
 if __name__ == '__main__':

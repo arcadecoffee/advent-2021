@@ -168,11 +168,11 @@ def test_part_1_full():
     assert result == 3734
 
 
-# def test_part_2():
-#     result = part_2(TEST_INPUT_FILE)
-#     assert result == 0
-#
-#
-# def test_part_2_full():
-#     result = part_2(FULL_INPUT_FILE)
-#     assert result == 0
+def test_part_2():
+    result = part_2(TEST_INPUT_FILE_2)
+    assert result == 3993
+
+
+def test_part_2_full():
+    result = part_2(FULL_INPUT_FILE)
+    assert result == 4837
