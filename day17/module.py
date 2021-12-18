@@ -31,7 +31,7 @@ def shot_good(x_velocity: int, y_velocity: int, x1: int, x2: int, y1: int, y2: i
             return True
         x_position += x_velocity
         y_position += y_velocity
-        x_velocity -= 1 if x_velocity else 0
+        x_velocity -= 1 if x_velocity > 0 else -1 if x_velocity < 0 else 0
         y_velocity -= 1
     return False
 
