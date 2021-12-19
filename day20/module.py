@@ -1,9 +1,9 @@
 """
-Advent of Code 2021 - Day ZZ
-https://adventofcode.com/2021/day/ZZ
+Advent of Code 2021 - Day 20
+https://adventofcode.com/2021/day/20
 """
 
-DAY = 'ZZ'
+DAY = '20'
 
 FULL_INPUT_FILE = f'../inputs/day{DAY}/input.full.txt'
 TEST_INPUT_FILE = f'../inputs/day{DAY}/input.test.txt'
