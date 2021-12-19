@@ -6,7 +6,7 @@ https://adventofcode.com/2021/day/ZZ
 DAY = 'ZZ'
 
 FULL_INPUT_FILE = f'../inputs/day{DAY:02d}/input.full.txt'
-TEST_INPUT_FILE = f'../inputs/day{DAY:02d}/input.full.txt'
+TEST_INPUT_FILE = f'../inputs/day{DAY:02d}/input.test.txt'
 
 
 def load_data(infile_path: str) -> str:
