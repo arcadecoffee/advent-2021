@@ -5,7 +5,7 @@ https://adventofcode.com/2021/day/19
 
 import re
 from math import sqrt
-from typing import Dict, List, Any
+from typing import Dict, List, Tuple, Any
 
 DAY = 19
 
@@ -13,7 +13,7 @@ FULL_INPUT_FILE = f'../inputs/day{DAY:02d}/input.full.txt'
 TEST_INPUT_FILE = f'../inputs/day{DAY:02d}/input.test.txt'
 
 
-def load_data(infile_path: str) -> Dict[int, Dict[int, Dict[Any, Any]]]:
+def load_data(infile_path: str) -> Dict[int, Dict[int, Dict[int, Dict[str, int]]]]:
     with open(infile_path, 'r', encoding='ascii') as infile:
         data = {}
         current_scanner = None
@@ -28,7 +28,8 @@ def load_data(infile_path: str) -> Dict[int, Dict[int, Dict[Any, Any]]]:
     return data
 
 
-def build_map(infile_path):
+def build_map(infile_path: str) -> \
+        Tuple[Dict[int, Dict[int, Dict[str, int]]], List[List[int]]]:
     scanners = load_data(infile_path)
     for s in scanners:
         calculate_distances(scanners[s])
@@ -41,12 +42,14 @@ def build_map(infile_path):
     return scanners[0], offsets
 
 
-def transform_and_merge(matches, scanners):
+def transform_and_merge(matches: List[Dict[str, int]], scanners: Dict[int, Any]) -> List[int]:
     dest = matches[0]['s1']
     src = matches[0]['s2']
+
+    dest_a, dest_b, dest_diff, src_a, src_b, src_diff = [None] * 6
+
     n = 0
     usable = False
-
     while not usable:
         n += 1
         dest_a, dest_b = [scanners[dest][matches[i]['b1']]['loc'] for i in (0, n)]
@@ -69,7 +72,7 @@ def transform_and_merge(matches, scanners):
     return offset
 
 
-def find_matches(scanners):
+def find_matches(scanners: Dict[int, Any]) -> List[Dict[str, int]]:
     matches = []
     for s1 in scanners:
         for s2 in [sx for sx in scanners if sx > s1]:
@@ -84,7 +87,7 @@ def find_matches(scanners):
     return matches
 
 
-def calculate_distances(scanner):
+def calculate_distances(scanner: Dict[int, Any]) -> None:
     for b1 in scanner:
         x1, y1, z1 = scanner[b1]['loc']
         scanner[b1]['distance_set'] = set()
@@ -94,7 +97,7 @@ def calculate_distances(scanner):
             scanner[b1]['distance_set'].add(distance)
 
 
-def find_longest_distance(offsets):
+def find_longest_distance(offsets:  List[List[int]]) -> int:
     m = 0
     for i in range(len(offsets)):
         for j in range(i + 1, len(offsets)):
@@ -103,7 +106,7 @@ def find_longest_distance(offsets):
     return int(m)
 
 
-def part_1_and_2(infile_path: str) -> int:
+def part_1_and_2(infile_path: str):
     beacons, offsets = build_map(infile_path)
     part1_answer = len(beacons)
     part2_answer = find_longest_distance(offsets)
