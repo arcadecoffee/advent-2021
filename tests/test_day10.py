@@ -10,7 +10,7 @@ def test_part_1():
     """
     Result should be: 26397
     """
-    result = part_1(TEST_INPUT_FILE, verbose=True)
+    result = part_1(TEST_INPUT_FILE, verbose=False)
     assert result == 26397
 
 
@@ -26,7 +26,7 @@ def test_part_2():
     """
     Result should be: 288957
     """
-    result = part_2(TEST_INPUT_FILE, verbose=True)
+    result = part_2(TEST_INPUT_FILE, verbose=False)
     assert result == 288957
 
 
