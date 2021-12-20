@@ -37,8 +37,8 @@ class Image:
                 del s[-1]
 
     def enhance(self, steps: int = 1) -> None:
-        self.add_margin(steps + 1)
         for _ in range(steps):
+            self.add_margin(2)
             new_background = self._algorithm_bitmap[
                 int(''.join([str(int(self.background))] * 9), 2)
             ]
@@ -55,7 +55,7 @@ class Image:
                     new_bitmap[row_num][col_num] = self._algorithm_bitmap[n]
             self._image_bitmap = new_bitmap
             self.background = new_background
-        self.crop()
+            self.crop()
 
     @property
     def width(self) -> int:
