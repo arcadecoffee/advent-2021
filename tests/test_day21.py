@@ -18,9 +18,9 @@ def test_part_1_full():
 
 def test_part_2():
     result = part_2(TEST_INPUT_FILE)
-    assert result == 0
+    assert result == 444356092776315
 
 
 def test_part_2_full():
     result = part_2(FULL_INPUT_FILE)
-    assert result == 0
+    assert result == 152587196649184

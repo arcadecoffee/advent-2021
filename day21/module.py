@@ -4,6 +4,7 @@ https://adventofcode.com/2021/day/21
 """
 
 import re
+from collections import Counter, defaultdict
 from typing import List, Tuple
 
 DAY = '21'
@@ -29,25 +30,6 @@ def calculate_cycles(p1_start: int, p2_start: int) -> Tuple[List[int], List[int]
     return p1_cycle, p2_cycle
 
 
-def calculate_p1_cycle(start: int = 0) -> List[int]:
-    cycle_range = range(5)
-    p1_moves = [((((6 * (i + 1) - 4) * 3) - 1) % 10) + 1 for i in cycle_range]
-    p1_cycle = [start] * 5
-    for i in cycle_range:
-        p1_cycle[i] = ((p1_moves[i] - 1 + p1_cycle[i - 1]) % 10) + 1
-    return p1_cycle
-
-
-def calculate_p2_cycle(p1_start: int = 0) -> List[int]:
-    cycle_range = range(10)
-    p2_moves = [((((6 * (i + 1) - 1) * 3) - 1) % 10) + 1 for i in cycle_range]
-    p2_cycle = []
-    for i in cycle_range:
-        prev_position = p1_start if not p2_cycle else p2_cycle[i - 1]
-        p2_cycle.append(((p2_moves[i] - 1 + prev_position) % 10) + 1)
-    return p2_cycle
-
-
 def find_winning_turn(target: int, cycle: List[int]) -> int:
     full_cycles = int(target / sum(cycle))
     points = full_cycles * sum(cycle)
@@ -68,8 +50,7 @@ def find_score_at_turn(turn: int, cycle: List[int]):
     return points
 
 
-def part_1(infile_path: str) -> int:
-    p1_start, p2_start = load_data(infile_path)
+def simulate_deterministic(p1_start: int, p2_start: int) -> int:
     p1_cycle, p2_cycle = calculate_cycles(p1_start, p2_start)
     p1_winning_turn = find_winning_turn(1000, p1_cycle)
     p2_winning_turn = find_winning_turn(1000, p2_cycle)
@@ -82,9 +63,40 @@ def part_1(infile_path: str) -> int:
     return losing_score * total_rolls
 
 
+def simulate_dirac(p1_start: int, p2_start: int) -> int:
+    states = {(p1_start, p2_start, 0, 0): 1}
+    p1_wins = p2_wins = 0
+    possible_rolls = \
+        Counter([i + j + k for i in (1, 2, 3) for j in (1, 2, 3) for k in (1, 2, 3)])
+    while states:
+        new_states = defaultdict(int)
+        for (p1_pos, p2_pos, p1_score, p2_score), count in states.items():
+            for p1_roll in possible_rolls:
+                new_p1_pos = ((p1_pos + p1_roll - 1) % 10) + 1
+                new_p1_score = p1_score + new_p1_pos
+                if new_p1_score >= 21:
+                    p1_wins += count * possible_rolls[p1_roll]
+                else:
+                    for p2_roll in possible_rolls:
+                        new_p2_pos = ((p2_pos + p2_roll - 1) % 10) + 1
+                        new_p2_score = p2_score + new_p2_pos
+                        if new_p2_score >= 21:
+                            p2_wins += count * possible_rolls[p1_roll] * possible_rolls[p2_roll]
+                        else:
+                            new_states[new_p1_pos, new_p2_pos, new_p1_score, new_p2_score] += \
+                                count * possible_rolls[p1_roll] * possible_rolls[p2_roll]
+        states = new_states
+    return max([p1_wins, p2_wins])
+
+
+def part_1(infile_path: str) -> int:
+    p1_start, p2_start = load_data(infile_path)
+    return simulate_deterministic(p1_start, p2_start)
+
+
 def part_2(infile_path: str) -> int:
-    data = load_data(infile_path)
-    return 0
+    p1_start, p2_start = load_data(infile_path)
+    return simulate_dirac(p1_start, p2_start)
 
 
 if __name__ == '__main__':
