@@ -5,7 +5,7 @@ https://adventofcode.com/2021/day/21
 
 import re
 from collections import Counter, defaultdict
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 DAY = '21'
 
@@ -50,10 +50,10 @@ def find_score_at_turn(turn: int, cycle: List[int]):
     return points
 
 
-def simulate_deterministic(p1_start: int, p2_start: int) -> int:
+def simulate_deterministic(p1_start: int, p2_start: int, target: int = 1000) -> int:
     p1_cycle, p2_cycle = calculate_cycles(p1_start, p2_start)
-    p1_winning_turn = find_winning_turn(1000, p1_cycle)
-    p2_winning_turn = find_winning_turn(1000, p2_cycle)
+    p1_winning_turn = find_winning_turn(target, p1_cycle)
+    p2_winning_turn = find_winning_turn(target, p2_cycle)
     if p1_winning_turn <= p2_winning_turn:
         losing_score = find_score_at_turn(p1_winning_turn - 1, p2_cycle)
         total_rolls = (6 * p1_winning_turn) - 3
@@ -63,24 +63,33 @@ def simulate_deterministic(p1_start: int, p2_start: int) -> int:
     return losing_score * total_rolls
 
 
-def simulate_dirac(p1_start: int, p2_start: int) -> int:
-    states = {(p1_start, p2_start, 0, 0): 1}
+def generate_rolls(dice: int, sides: int) -> Dict[int, int]:
+    possible_rolls = [()]
+    for _ in range(dice):
+        possible_rolls = [(i, *j) for i in range(1, sides + 1) for j in possible_rolls]
+    possible_rolls = Counter([sum(i) for i in possible_rolls])
+    return possible_rolls
+
+
+def simulate_dirac(p1_start: int, p2_start: int, spaces: int = 10,
+                   dice: int = 3, sides: int = 3, target: int = 21) -> int:
+    possible_rolls = generate_rolls(dice, sides)
     p1_wins = p2_wins = 0
-    possible_rolls = \
-        Counter([i + j + k for i in (1, 2, 3) for j in (1, 2, 3) for k in (1, 2, 3)])
+
+    states = {(p1_start, p2_start, 0, 0): 1}
     while states:
         new_states = defaultdict(int)
         for (p1_pos, p2_pos, p1_score, p2_score), count in states.items():
             for p1_roll in possible_rolls:
-                new_p1_pos = ((p1_pos + p1_roll - 1) % 10) + 1
+                new_p1_pos = ((p1_pos + p1_roll - 1) % spaces) + 1
                 new_p1_score = p1_score + new_p1_pos
-                if new_p1_score >= 21:
+                if new_p1_score >= target:
                     p1_wins += count * possible_rolls[p1_roll]
                 else:
                     for p2_roll in possible_rolls:
-                        new_p2_pos = ((p2_pos + p2_roll - 1) % 10) + 1
+                        new_p2_pos = ((p2_pos + p2_roll - 1) % spaces) + 1
                         new_p2_score = p2_score + new_p2_pos
-                        if new_p2_score >= 21:
+                        if new_p2_score >= target:
                             p2_wins += count * possible_rolls[p1_roll] * possible_rolls[p2_roll]
                         else:
                             new_states[new_p1_pos, new_p2_pos, new_p1_score, new_p2_score] += \
