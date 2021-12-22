@@ -56,14 +56,12 @@ def count_lit_cubes(data):
         mode, box = d[0], d[1:]
         x1, x2, y1, y2, z1, z2 = box
         if mode == 'on':
-            dead_cubes = set()
+            dead_cubes = []
             for zone in counted_zones:
                 if overlapping_volume(zone, box):
-                    ox1, ox2, oy1, oy2, oz1, oz2 = overlapping_box(zone, box)
-                    dead_cubes.update(
-                        product(range(ox1, ox2 + 1), range(oy1, oy2 + 1), range(oz1, oz2 + 1)))
+                    dead_cubes.append(('on', *overlapping_box(zone, box)))
             lit_count += (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
-            lit_count -= len(dead_cubes)
+            lit_count -= count_lit_cubes(dead_cubes)
         counted_zones.append(box)
     return lit_count
 
