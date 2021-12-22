@@ -16,6 +16,11 @@ def test_part_1_2():
     assert result == 590784
 
 
+def test_part_1_3():
+    result = part_1(TEST_INPUT_FILE_3)
+    assert result == 474140
+
+
 def test_part_1_full():
     result = part_1(FULL_INPUT_FILE)
     assert result == 546724

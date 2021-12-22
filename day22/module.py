@@ -26,31 +26,48 @@ def load_data(infile_path: str) -> List[List[Union[str, Any]]]:
     return data
 
 
-def part_1(infile_path: str) -> int:
-    illuminated = set()
-    data = load_data(infile_path)
-    for d in data:
-        x1, x2, y1, y2, z1, z2 = sorted(d[1:3]) + sorted(d[3:5]) + sorted(d[5:7])
-        if not (x1 > 50 or x2 < -50 or y1 > 50 or y2 < -50 or z1 > 50 or z2 < -50):
-            d_set = set()
-            for x in range(x1, x2 + 1):
-                for y in range(y1, y2 + 1):
-                    for z in range(z1, z2 + 1):
-                        d_set.add((x, y, z))
-            if d[0] == 'on':
-                illuminated.update(d_set)
-            if d[0] == 'off':
-                illuminated = illuminated - d_set
-    return len(illuminated)
-
-
-def collides(box_a: List[int], box_b: List[int]) -> bool:
+def colliding_corners(box_a: List[int], box_b: List[int]) -> int:
     ax1, ax2, ay1, ay2, az1, az2 = sorted(box_a[0:2]) + sorted(box_a[2:4]) + sorted(box_a[4:6])
-
+    corners = 0
     for x, y, z in product(box_b[0:2], box_b[2:4], box_b[4:6]):
         if ax1 <= x <= ax2 and ay1 <= y <= ay2 and az1 <= z <= az2:
-            return True
-    return False
+            corners += 1
+    return corners
+
+
+def overlapping_volume(box_a: List[int], box_b: List[int]) -> int:
+    ax, axp, ay, ayp, az, azp = box_a
+    bx, bxp, by, byp, bz, bzp = box_b
+    return max(min(axp + 1, bxp + 1) - max(ax, bx), 0) * \
+           max(min(ayp + 1, byp + 1) - max(ay, by), 0) * \
+           max(min(azp + 1, bzp + 1) - max(az, bz), 0)
+
+
+def overlapping_box(box_a: List[int], box_b: List[int]) -> Tuple[int, ...]:
+    ax, axp, ay, ayp, az, azp = box_a
+    bx, bxp, by, byp, bz, bzp = box_b
+    return max(ax, bx), min(axp, bxp), max(ay, by),  min(ayp, byp), max(az, bz), min(azp, bzp)
+
+
+def part_1(infile_path:str) -> int:
+    data = load_data(infile_path)
+    lit_count = 0
+    counted_zones = []
+    for d in reversed(data):
+        mode, box = d[0], d[1:]
+        x1, x2, y1, y2, z1, z2 = box
+        if not (x1 > 50 or x2 < -50 or y1 > 50 or y2 < -50 or z1 > 50 or z2 < -50):
+            if mode == 'on':
+                dead_cubes = set()
+                for zone in counted_zones:
+                    if overlapping_volume(zone, box):
+                        ox1, ox2, oy1, oy2, oz1, oz2 = overlapping_box(zone, box)
+                        dead_cubes.update(
+                            product(range(ox1, ox2 + 1), range(oy1, oy2 + 1), range(oz1, oz2 + 1)))
+                lit_count += (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
+                lit_count -= len(dead_cubes)
+            counted_zones.append(box)
+    return lit_count
 
 
 def part_2(infile_path: str) -> int:
@@ -59,8 +76,10 @@ def part_2(infile_path: str) -> int:
 
 
 if __name__ == '__main__':
-    part1_answer = part_1(FULL_INPUT_FILE)
-    print(f'Part 1: {part1_answer}')
-
-    part2_answer = part_2(FULL_INPUT_FILE)
-    print(f'Part 2: {part2_answer}')
+    r = part_1_a(TEST_INPUT_FILE_1)
+    print(r)
+    # part1_answer = part_1(FULL_INPUT_FILE)
+    # print(f'Part 1: {part1_answer}')
+    #
+    # part2_answer = part_2(FULL_INPUT_FILE)
+    # print(f'Part 2: {part2_answer}')
