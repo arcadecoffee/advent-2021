@@ -49,30 +49,40 @@ def overlapping_box(box_a: List[int], box_b: List[int]) -> Tuple[int, ...]:
     return max(ax, bx), min(axp, bxp), max(ay, by),  min(ayp, byp), max(az, bz), min(azp, bzp)
 
 
-def part_1(infile_path:str) -> int:
-    data = load_data(infile_path)
+def count_lit_cubes(data):
     lit_count = 0
     counted_zones = []
     for d in reversed(data):
         mode, box = d[0], d[1:]
         x1, x2, y1, y2, z1, z2 = box
-        if not (x1 > 50 or x2 < -50 or y1 > 50 or y2 < -50 or z1 > 50 or z2 < -50):
-            if mode == 'on':
-                dead_cubes = set()
-                for zone in counted_zones:
-                    if overlapping_volume(zone, box):
-                        ox1, ox2, oy1, oy2, oz1, oz2 = overlapping_box(zone, box)
-                        dead_cubes.update(
-                            product(range(ox1, ox2 + 1), range(oy1, oy2 + 1), range(oz1, oz2 + 1)))
-                lit_count += (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
-                lit_count -= len(dead_cubes)
-            counted_zones.append(box)
+        if mode == 'on':
+            dead_cubes = set()
+            for zone in counted_zones:
+                if overlapping_volume(zone, box):
+                    ox1, ox2, oy1, oy2, oz1, oz2 = overlapping_box(zone, box)
+                    dead_cubes.update(
+                        product(range(ox1, ox2 + 1), range(oy1, oy2 + 1), range(oz1, oz2 + 1)))
+            lit_count += (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
+            lit_count -= len(dead_cubes)
+        counted_zones.append(box)
+    return lit_count
+
+
+def part_1(infile_path:str) -> int:
+    data = load_data(infile_path)
+    clean_data = []
+    for row in data:
+        x1, x2, y1, y2, z1, z2 = row[1:]
+        if x1 <= 50 and x2 >= -50 and y1 <= 50 and y2 >= -50 and z1 <= 50 and z2 >= -50:
+            clean_data.append(row)
+    lit_count = count_lit_cubes(clean_data)
     return lit_count
 
 
 def part_2(infile_path: str) -> int:
     data = load_data(infile_path)
-    return 0
+    lit_count = count_lit_cubes(data)
+    return lit_count
 
 
 if __name__ == '__main__':
