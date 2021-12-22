@@ -4,7 +4,6 @@ https://adventofcode.com/2021/day/22
 """
 
 import re
-from itertools import product
 from typing import List, Tuple, Union, Any
 
 DAY = '22'
@@ -26,40 +25,23 @@ def load_data(infile_path: str) -> List[List[Union[str, Any]]]:
     return data
 
 
-def colliding_corners(box_a: List[int], box_b: List[int]) -> int:
-    ax1, ax2, ay1, ay2, az1, az2 = sorted(box_a[0:2]) + sorted(box_a[2:4]) + sorted(box_a[4:6])
-    corners = 0
-    for x, y, z in product(box_b[0:2], box_b[2:4], box_b[4:6]):
-        if ax1 <= x <= ax2 and ay1 <= y <= ay2 and az1 <= z <= az2:
-            corners += 1
-    return corners
-
-
-def overlapping_volume(box_a: List[int], box_b: List[int]) -> int:
-    ax, axp, ay, ayp, az, azp = box_a
-    bx, bxp, by, byp, bz, bzp = box_b
-    return max(min(axp + 1, bxp + 1) - max(ax, bx), 0) * \
-           max(min(ayp + 1, byp + 1) - max(ay, by), 0) * \
-           max(min(azp + 1, bzp + 1) - max(az, bz), 0)
-
-
 def overlapping_box(box_a: List[int], box_b: List[int]) -> Tuple[int, ...]:
-    ax, axp, ay, ayp, az, azp = box_a
-    bx, bxp, by, byp, bz, bzp = box_b
-    return max(ax, bx), min(axp, bxp), max(ay, by),  min(ayp, byp), max(az, bz), min(azp, bzp)
+    max_x, max_y, max_z = [max(box_a[i], box_b[i]) for i in (0, 2, 4)]
+    min_xp, min_yp, min_zp = [min(box_a[i], box_b[i]) for i in (1, 3, 5)]
+    if min_xp - max_x >= 0 and min_yp - max_y >= 0 and min_zp - max_z >= 0:
+        return max_x, min_xp, max_y,  min_yp, max_z, min_zp
 
 
 def count_lit_cubes(data):
     lit_count = 0
     counted_zones = []
-    for d in reversed(data):
-        mode, box = d[0], d[1:]
+    for mode, box in [(d[0], d[1:]) for d in reversed(data)]:
         x1, x2, y1, y2, z1, z2 = box
         if mode == 'on':
             dead_cubes = []
-            for zone in counted_zones:
-                if overlapping_volume(zone, box):
-                    dead_cubes.append(('on', *overlapping_box(zone, box)))
+            for overlap_box in [overlapping_box(zone, box) for zone in counted_zones]:
+                if overlap_box:
+                    dead_cubes.append(('on', *overlap_box))
             lit_count += (x2 - x1 + 1) * (y2 - y1 + 1) * (z2 - z1 + 1)
             lit_count -= count_lit_cubes(dead_cubes)
         counted_zones.append(box)
@@ -67,13 +49,12 @@ def count_lit_cubes(data):
 
 
 def part_1(infile_path:str) -> int:
-    data = load_data(infile_path)
-    clean_data = []
-    for row in data:
+    data = []
+    for row in load_data(infile_path):
         x1, x2, y1, y2, z1, z2 = row[1:]
-        if x1 <= 50 and x2 >= -50 and y1 <= 50 and y2 >= -50 and z1 <= 50 and z2 >= -50:
-            clean_data.append(row)
-    lit_count = count_lit_cubes(clean_data)
+        if all([n <= 50 for n in (x1, y1, z1)]) and all([n >= -50 for n in (x2, y2, z2)]):
+            data.append(row)
+    lit_count = count_lit_cubes(data)
     return lit_count
 
 
