@@ -31,6 +31,6 @@ def test_part_2():
     assert result == 2758514936282235
 
 
-# def test_part_2_full():
-#     result = part_2(FULL_INPUT_FILE)
-#     assert result == 0
+def test_part_2_full():
+    result = part_2(FULL_INPUT_FILE)
+    assert result == 1346544039176841

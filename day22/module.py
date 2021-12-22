@@ -84,10 +84,8 @@ def part_2(infile_path: str) -> int:
 
 
 if __name__ == '__main__':
-    r = part_1_a(TEST_INPUT_FILE_1)
-    print(r)
-    # part1_answer = part_1(FULL_INPUT_FILE)
-    # print(f'Part 1: {part1_answer}')
-    #
-    # part2_answer = part_2(FULL_INPUT_FILE)
-    # print(f'Part 2: {part2_answer}')
+    part1_answer = part_1(FULL_INPUT_FILE)
+    print(f'Part 1: {part1_answer}')
+
+    part2_answer = part_2(FULL_INPUT_FILE)
+    print(f'Part 2: {part2_answer}')
