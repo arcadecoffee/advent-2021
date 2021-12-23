@@ -48,7 +48,7 @@ def count_lit_cubes(data: List[List[str]]) -> int:
     return lit_count
 
 
-def part_1(infile_path:str) -> int:
+def part_1(infile_path: str) -> int:
     data = []
     for row in load_data(infile_path):
         x1, x2, y1, y2, z1, z2 = row[1:]
