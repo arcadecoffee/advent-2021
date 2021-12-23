@@ -32,7 +32,7 @@ def overlapping_box(box_a: List[int], box_b: List[int]) -> Tuple[int, ...]:
         return max_x, min_xp, max_y,  min_yp, max_z, min_zp
 
 
-def count_lit_cubes(data):
+def count_lit_cubes(data: List[List[str]]) -> int:
     lit_count = 0
     counted_zones = []
     for mode, box in [(d[0], d[1:]) for d in reversed(data)]:
