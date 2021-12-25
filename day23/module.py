@@ -3,6 +3,7 @@ Advent of Code 2021 - Day 23
 https://adventofcode.com/2021/day/23
 """
 
+from copy import deepcopy
 from queue import PriorityQueue
 from typing import Dict, List, Tuple
 
@@ -11,100 +12,155 @@ DAY = '23'
 FULL_INPUT_FILE = f'../inputs/day{DAY}/input.full.txt'
 TEST_INPUT_FILE = f'../inputs/day{DAY}/input.test.txt'
 
+PART_1_MAP = {
+    'H': [None] * 7,
+    'A': ['B', 'A'],
+    'B': ['C', 'D'],
+    'C': ['B', 'C'],
+    'D': ['D', 'A'],
+}
+
 
 class Burrow:
-    COST_FACTOR = {'A': 1, 'B': 10, 'C': 100, 'D': 1000}
-
-    MAPS = {
-        'PART_1': {
-            'h1': {'connections': {'h2': 1}},
-            'h2': {'connections': {'h1': 1, 'h4': 2, 'a1': 2}},
-            'h4': {'connections': {'h2': 2, 'h6': 2, 'a1': 2, 'b1': 2}},
-            'h6': {'connections': {'h4': 2, 'h8': 2, 'b1': 2, 'c1': 2}},
-            'h8': {'connections': {'h6': 2, 'h10': 2, 'c1': 2, 'd1': 2}},
-            'h10': {'connections': {'h8': 2, 'h11': 1, 'd1': 2}},
-            'h11': {'connections': {'h10': 1}},
-            'a1': {'connections': {'a2': 1, 'h2': 2, 'h4': 2}},
-            'a2': {'connections': {'a1': 1}},
-            'b1': {'connections': {'b2': 1, 'h4': 2, 'h6': 2}},
-            'b2': {'connections': {'b1': 1}},
-            'c1': {'connections': {'c2': 1, 'h6': 2, 'h8': 2}},
-            'c2': {'connections': {'c1': 1}},
-            'd1': {'connections': {'d2': 1, 'h8': 2, 'h10': 2}},
-            'd2': {'connections': {'d1': 1}},
-        }
+    AMPHIPOD_TYPES = {'A': 1, 'B': 10, 'C': 100, 'D': 1000}
+    PATHS = {
+        0: {
+            'A': [0, 1],          # 3
+            'B': [0, 1, 2],       # 5
+            'C': [0, 1, 2, 3],    # 7
+            'D': [0, 1, 2, 3, 4], # 9  2n - 1
+        },
+        1: {
+            'A': [1],             # 2
+            'B': [1, 2],          # 4
+            'C': [1, 2, 3],       # 6
+            'D': [1, 2, 3, 4],    # 9  2n
+        },
+        2: {
+            'A': [2],             # 2
+            'B': [2],             # 2
+            'C': [2, 3],          # 4
+            'D': [2, 3, 4],       # 6  2n
+        },
+        3: {
+            'A': [3, 2],          # 4
+            'B': [3],             # 2
+            'C': [3],             # 2
+            'D': [3, 4],          # 4  2n
+        },
+        4: {
+            'A': [4, 3, 2],       # 6
+            'B': [4, 3],          # 4
+            'C': [4],             # 2
+            'D': [4],             # 2  2n
+        },
+        5: {
+            'A': [5, 4, 3, 2],    # 8
+            'B': [5, 4, 3],       # 6
+            'C': [5, 4],          # 3
+            'D': [5],             # 2  2n
+        },
+        6: {
+            'A': [6, 5, 4, 3, 2], # 9
+            'B': [6, 5, 4, 3],    # 7
+            'C': [6, 5, 4],       # 5
+            'D': [6, 5],          # 3 2n - 1
+        },
     }
 
-    def __init__(self, state: Tuple, burrow_map: str = 'PART_1'):
-        self.spots = self.MAPS[burrow_map]
-        self.amphipods = dict((k, v) for k, v in state)
+    def __init__(self, state: Dict = None, cost: int = 0):
+        self.state = deepcopy(state) if state else {}
+        self.cost = cost
+
+    def __lt__(self, other):
+        return self.cost < other.cost
+
+    def __eq__(self, other):
+        return self.cost == other.cost and self.state == other.state
+
+    def __hash__(self):
+        return hash((tuple((k, tuple(v)) for k, v in sorted(self.state.items())), self.cost))
+
+    def move(self, from_area: str, from_pos: int, to_area: str, to_pos: int):
+        if self.state[to_area][to_pos] or from_area == to_area or \
+                to_area not in (self.state[from_area][from_pos], 'H'):
+            raise ValueError(f'Invalid move from {from_area}-{from_pos} to {to_area}-{to_pos}')
+        else:
+            self.state[to_area][to_pos] = self.state[from_area][from_pos]
+            self.state[from_area][from_pos] = None
 
     @property
-    def state(self):
-        return tuple(sorted(self.amphipods.items()))
+    def is_a_winner(self):
+        for amphipod_type in self.AMPHIPOD_TYPES:
+            if not all(_ == amphipod_type for _ in self.state[amphipod_type]):
+                return False
+        return True
 
-    def is_a_winner(self) -> bool:
-        return all(self.amphipods[a].startswith(a[0].lower()) for a in self.amphipods)
+    def room_open(self, room: str) -> bool:
+        return all(_ in (None, room) for _ in self.state[room])
 
-    def move_amphipod(self, amphipod: str, new_spot: str):
-        self.amphipods[amphipod] = new_spot
+    def next_spot_in_room(self, room: str) -> int:
+        return len(self.state[room]) - 1 - self.state[room][::-1].index(None)
 
-    def move_options(self, amphipod: str, current_spot: str = None, started: str = None, visited: List[str] = None):
-        current_spot = current_spot if current_spot else self.amphipods[amphipod]
-        visited = visited + [current_spot] if visited else [current_spot]
-        started = started if started else current_spot
-        amphipod_type = amphipod[0]
-        options = []
+    def path_to_room_clear(self, hallway_start: int, end_room_type: str) -> bool:
+        for position in self.PATHS[hallway_start][end_room_type]:
+            if position != hallway_start and self.state['H'][position]:
+                return False
+        return True
 
-        if current_spot[0].upper() == amphipod_type:
-            if all(_[0] == amphipod_type for _ in self.amphipods if
-                   self.amphipods[_].startswith(amphipod_type.lower())
-                   and int(self.amphipods[_][1]) > int(current_spot[1])):
-                return options
+    @classmethod
+    def move_cost(cls, hallway_position: int, room_type: str, room_position: int,
+                  amphipod_type: str):
+        hallway_length = 2 * len(cls.PATHS[hallway_position][room_type])
+        hallway_length -= 1 if hallway_position in (0, 6) else 0
+        return (hallway_length + room_position) * cls.AMPHIPOD_TYPES[amphipod_type]
 
-        for destination in self.spots[current_spot]['connections']:
-            if destination not in self.amphipods.values() and destination not in visited:
-                cost = self.spots[current_spot]['connections'][destination] * \
-                       self.COST_FACTOR[amphipod_type]
-                options.append((destination, cost))
-                for option in self.move_options(amphipod, destination, started, visited):
-                    options.append((option[0], option[1] + cost))
-        options = self.filter_option_list(options, visited[0], amphipod_type)
-        return options
+    @property
+    def possible_moves(self) -> List:
+        next_possible_states = []
+        for hall_pos in range(len(self.state['H'])):
+            amphipod_type = self.state['H'][hall_pos]
+            if amphipod_type and self.room_open(amphipod_type):
+                if self.path_to_room_clear(hall_pos, amphipod_type):
+                    room_pos = self.next_spot_in_room(amphipod_type)
+                    new_burrow = deepcopy(self)
+                    new_burrow.move('H', hall_pos, amphipod_type, room_pos)
+                    new_burrow.cost += self.move_cost(hall_pos, amphipod_type, room_pos,
+                                                      amphipod_type)
+                    return [new_burrow]
+        for room in self.AMPHIPOD_TYPES:
+            if not self.room_open(room):
+                amphipod_type = [_ for _ in self.state[room] if _][0]
+                room_pos = self.state[room].index(amphipod_type)
+                for hall_pos in self.PATHS:
+                    if not self.state['H'][hall_pos] and self.path_to_room_clear(hall_pos, amphipod_type):
+                        new_burrow = Burrow(self.state, self.cost)
+                        new_burrow.move(room, room_pos, 'H', hall_pos)
+                        new_burrow.cost += self.move_cost(hall_pos, room, room_pos, amphipod_type)
+                        next_possible_states.append(new_burrow)
+        return next_possible_states
 
-    def filter_option_list(self, option_list: List[Tuple[str, int]], original_start: str,
-                           amphipod_type: str) -> List[Tuple[str, int]]:
-        options = sorted(
-            [min([_ for _ in option_list if _[0] == r], key=lambda l: l[1]) for r in
-             [s for s in set([t[0] for t in option_list])]])
-        options = list(filter(lambda x: not x[0].startswith(original_start[0]) and
-                              (x[0].startswith(amphipod_type.lower()) or x[0].startswith('h')),
-                              options))
-        if not [k for k, v in self.amphipods.items()
-                if not k.startswith(amphipod_type) and v.startswith(amphipod_type.lower())]:
-            home_shots = [_ for _ in options if _[0].startswith(amphipod_type.lower())]
-            if home_shots:
-                options = [max(home_shots, key=lambda l: l[0])]
-        return options
 
 
-def find_path(burrow: Burrow) -> int:
-    queue = PriorityQueue()
-    queue.put([0, burrow.state])
-    visited = set()
 
-    while queue:
-        cost, state = queue.get()
-        burrow = Burrow(state)
-        if burrow.is_a_winner():
-            return cost
-        elif burrow.state not in visited:
-            for amphipod in burrow.amphipods:
-                for move, option_cost in burrow.move_options(amphipod):
-                    new_burrow = Burrow(burrow.state)
-                    new_burrow.move_amphipod(amphipod, move)
-                    queue.put([cost + option_cost, new_burrow.state])
-            visited.add(burrow.state)
+
+# def find_path(burrow: Burrow) -> int:
+#     queue = PriorityQueue()
+#     queue.put([0, burrow.state])
+#     visited = set()
+#
+#     while queue:
+#         cost, state = queue.get()
+#         burrow = Burrow(state)
+#         if burrow.is_a_winner():
+#             return cost
+#         elif burrow.state not in visited:
+#             for amphipod in burrow.amphipods:
+#                 for move, option_cost in burrow.move_options(amphipod):
+#                     new_burrow = Burrow(burrow.state)
+#                     new_burrow.move_amphipod(amphipod, move)
+#                     queue.put([cost + option_cost, new_burrow.state])
+#             visited.add(burrow.state)
 
 
 def load_data(infile_path: str) -> str:
@@ -123,21 +179,10 @@ def part_2(infile_path: str) -> int:
 
 
 if __name__ == '__main__':
-    xstate = (('A0', 'a2'), ('A1', 'd2'),
-             ('B0', 'a1'), ('B1', 'c1'),
-             ('C0', 'b1'), ('C2', 'c2'),
-             ('D0', 'b2'), ('D2', 'd1'))
+    a = Burrow(PART_1_MAP)
+    p = a.possible_moves
+    part1_answer = part_1(FULL_INPUT_FILE)
+    print(f'Part 1: {part1_answer}')
 
-    ystate = (('A0', 'a2'), ('A1', 'a1'),
-             ('B0', 'b2'), ('B1', 'b1'),
-             ('C0', 'c1'), ('C2', 'c2'),
-             ('D0', 'd2'), ('D2', 'd1'))
-
-    b = Burrow(xstate)
-    x = find_path(b)
-    1
-    # part1_answer = part_1(FULL_INPUT_FILE)
-    # print(f'Part 1: {part1_answer}')
-    #
-    # part2_answer = part_2(FULL_INPUT_FILE)
-    # print(f'Part 2: {part2_answer}')
+    part2_answer = part_2(FULL_INPUT_FILE)
+    print(f'Part 2: {part2_answer}')
