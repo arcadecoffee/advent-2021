@@ -12,12 +12,20 @@ DAY = '23'
 FULL_INPUT_FILE = f'../inputs/day{DAY}/input.full.txt'
 TEST_INPUT_FILE = f'../inputs/day{DAY}/input.test.txt'
 
-PART_1_MAP = {
+PART_1_TEST_MAP = {
     'H': [None] * 7,
     'A': ['B', 'A'],
     'B': ['C', 'D'],
     'C': ['B', 'C'],
     'D': ['D', 'A'],
+}
+
+PART_1_FULL_MAP = {
+    'H': [None] * 7,
+    'A': ['B', 'C'],
+    'B': ['C', 'D'],
+    'C': ['A', 'D'],
+    'D': ['B', 'A'],
 }
 
 
@@ -81,6 +89,10 @@ class Burrow:
     def __hash__(self):
         return hash((tuple((k, tuple(v)) for k, v in sorted(self.state.items())), self.cost))
 
+    @property
+    def state_hash(self):
+        return hash((k, tuple(v)) for k, v in sorted(self.state.items()))
+
     def move(self, from_area: str, from_pos: int, to_area: str, to_pos: int):
         if self.state[to_area][to_pos] or from_area == to_area or \
                 to_area not in (self.state[from_area][from_pos], 'H'):
@@ -133,7 +145,7 @@ class Burrow:
                 amphipod_type = [_ for _ in self.state[room] if _][0]
                 room_pos = self.state[room].index(amphipod_type)
                 for hall_pos in self.PATHS:
-                    if not self.state['H'][hall_pos] and self.path_to_room_clear(hall_pos, amphipod_type):
+                    if not self.state['H'][hall_pos] and self.path_to_room_clear(hall_pos, room):
                         new_burrow = Burrow(self.state, self.cost)
                         new_burrow.move(room, room_pos, 'H', hall_pos)
                         new_burrow.cost += self.move_cost(hall_pos, room, room_pos, amphipod_type)
@@ -141,26 +153,19 @@ class Burrow:
         return next_possible_states
 
 
+def find_path(burrow: Burrow) -> Burrow:
+    queue = PriorityQueue()
+    queue.put(burrow)
+    visited = set()
 
-
-
-# def find_path(burrow: Burrow) -> int:
-#     queue = PriorityQueue()
-#     queue.put([0, burrow.state])
-#     visited = set()
-#
-#     while queue:
-#         cost, state = queue.get()
-#         burrow = Burrow(state)
-#         if burrow.is_a_winner():
-#             return cost
-#         elif burrow.state not in visited:
-#             for amphipod in burrow.amphipods:
-#                 for move, option_cost in burrow.move_options(amphipod):
-#                     new_burrow = Burrow(burrow.state)
-#                     new_burrow.move_amphipod(amphipod, move)
-#                     queue.put([cost + option_cost, new_burrow.state])
-#             visited.add(burrow.state)
+    while queue:
+        burrow = queue.get()
+        if burrow.is_a_winner:
+            return burrow
+        elif burrow.state_hash not in visited:
+            for possible_move in burrow.possible_moves:
+                queue.put(possible_move)
+            visited.add(burrow.state_hash)
 
 
 def load_data(infile_path: str) -> str:
@@ -168,9 +173,9 @@ def load_data(infile_path: str) -> str:
         return infile.readline().strip()
 
 
-def part_1(infile_path: str) -> int:
-    data = load_data(infile_path)
-    return 0
+def part_1(start_map: Dict) -> int:
+    result, _ = find_path(Burrow(start_map))
+    return result.cost
 
 
 def part_2(infile_path: str) -> int:
@@ -179,10 +184,12 @@ def part_2(infile_path: str) -> int:
 
 
 if __name__ == '__main__':
-    a = Burrow(PART_1_MAP)
-    p = a.possible_moves
-    part1_answer = part_1(FULL_INPUT_FILE)
-    print(f'Part 1: {part1_answer}')
-
-    part2_answer = part_2(FULL_INPUT_FILE)
-    print(f'Part 2: {part2_answer}')
+    a = Burrow(PART_1_TEST_MAP)
+    # for i in [16, 4, 0, 4, 0, 2, 0, 0]:
+    #     a = a.possible_moves[i]
+    a.possible_moves
+    # part1_answer = part_1(FULL_INPUT_FILE)
+    # print(f'Part 1: {part1_answer}')
+    #
+    # part2_answer = part_2(FULL_INPUT_FILE)
+    # print(f'Part 2: {part2_answer}')
