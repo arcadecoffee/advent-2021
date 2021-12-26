@@ -20,6 +20,7 @@ PART_2_INSERTIONS = {
     'D': ['A', 'C'],
 }
 
+
 class Burrow:
     AMPHIPOD_TYPES = {'A': 1, 'B': 10, 'C': 100, 'D': 1000}
     PATHS = {
@@ -43,9 +44,9 @@ class Burrow:
     @classmethod
     def move_cost(cls, hallway_position: int, room_type: str, room_position: int,
                   amphipod_type: str):
-        hallway_length = 2 * len(cls.PATHS[hallway_position][room_type])
-        hallway_length -= 1 if hallway_position in (0, 6) else 0
-        return (hallway_length + room_position) * cls.AMPHIPOD_TYPES[amphipod_type]
+        distance = 2 * len(cls.PATHS[hallway_position][room_type]) + room_position \
+                         - (1 if hallway_position in (0, 6) else 0)
+        return distance * cls.AMPHIPOD_TYPES[amphipod_type]
 
     @property
     def _state_hash(self):
@@ -53,10 +54,7 @@ class Burrow:
 
     @property
     def is_a_winner(self):
-        for amphipod_type in self.AMPHIPOD_TYPES:
-            if not all(_ == amphipod_type for _ in self.state[amphipod_type]):
-                return False
-        return True
+        return all(all(b == a for b in self.state[a]) for a in self.AMPHIPOD_TYPES)
 
     @property
     def possible_moves(self) -> List[Any]:
