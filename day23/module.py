@@ -30,6 +30,23 @@ PART_1_FULL_MAP = {
 }
 
 
+PART_2_TEST_MAP = {
+    'H': [None] * 7,
+    'A': ['B', 'D', 'D', 'A'],
+    'B': ['C', 'C', 'B', 'D'],
+    'C': ['B', 'B', 'A', 'C'],
+    'D': ['D', 'A', 'C', 'A'],
+}
+
+PART_2_FULL_MAP = {
+    'H': [None] * 7,
+    'A': ['B', 'D', 'D', 'C'],
+    'B': ['C', 'C', 'B', 'D'],
+    'C': ['A', 'B', 'A', 'D'],
+    'D': ['B', 'A', 'C', 'A'],
+}
+
+
 class Burrow:
     AMPHIPOD_TYPES = {'A': 1, 'B': 10, 'C': 100, 'D': 1000}
     PATHS = {
@@ -176,9 +193,9 @@ def part_1(start_map: Dict) -> int:
     return result.cost
 
 
-def part_2(infile_path: str) -> int:
-    data = load_data(infile_path)
-    return 0
+def part_2(start_map: Dict) -> int:
+    result = find_path(Burrow(start_map))
+    return result.cost
 
 
 def show_moves(b):
@@ -187,8 +204,8 @@ def show_moves(b):
 
 
 if __name__ == '__main__':
-    part1_answer = part_1(FULL_INPUT_FILE)
+    part1_answer = part_1(PART_1_FULL_MAP)
     print(f'Part 1: {part1_answer}')
 
-    part2_answer = part_2(FULL_INPUT_FILE)
+    part2_answer = part_2(PART_2_FULL_MAP)
     print(f'Part 2: {part2_answer}')
