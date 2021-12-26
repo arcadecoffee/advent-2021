@@ -3,7 +3,7 @@ Tests for Day 24
 """
 
 from day24.module import part_1, part_2, \
-    FULL_INPUT_FILE, TEST_INPUT_FILE
+    FULL_INPUT_FILE, TEST1_INPUT_FILE, TEST2_INPUT_FILE, TEST3_INPUT_FILE
 
 
 def test_part_1():
