@@ -3,95 +3,33 @@ Advent of Code 2021 - Day 23
 https://adventofcode.com/2021/day/23
 """
 
-from collections import defaultdict
+import re
 from copy import deepcopy
 from queue import PriorityQueue
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List
 
 DAY = '23'
 
 FULL_INPUT_FILE = f'../inputs/day{DAY}/input.full.txt'
 TEST_INPUT_FILE = f'../inputs/day{DAY}/input.test.txt'
 
-PART_1_TEST_MAP = {
-    'H': [None] * 7,
-    'A': ['B', 'A'],
-    'B': ['C', 'D'],
-    'C': ['B', 'C'],
-    'D': ['D', 'A'],
+PART_2_INSERTIONS = {
+    'A': ['D', 'D'],
+    'B': ['C', 'B'],
+    'C': ['B', 'A'],
+    'D': ['A', 'C'],
 }
-
-PART_1_FULL_MAP = {
-    'H': [None] * 7,
-    'A': ['B', 'C'],
-    'B': ['C', 'D'],
-    'C': ['A', 'D'],
-    'D': ['B', 'A'],
-}
-
-
-PART_2_TEST_MAP = {
-    'H': [None] * 7,
-    'A': ['B', 'D', 'D', 'A'],
-    'B': ['C', 'C', 'B', 'D'],
-    'C': ['B', 'B', 'A', 'C'],
-    'D': ['D', 'A', 'C', 'A'],
-}
-
-PART_2_FULL_MAP = {
-    'H': [None] * 7,
-    'A': ['B', 'D', 'D', 'C'],
-    'B': ['C', 'C', 'B', 'D'],
-    'C': ['A', 'B', 'A', 'D'],
-    'D': ['B', 'A', 'C', 'A'],
-}
-
 
 class Burrow:
     AMPHIPOD_TYPES = {'A': 1, 'B': 10, 'C': 100, 'D': 1000}
     PATHS = {
-        0: {
-            'A': [0, 1],          # 3
-            'B': [0, 1, 2],       # 5
-            'C': [0, 1, 2, 3],    # 7
-            'D': [0, 1, 2, 3, 4], # 9  2n - 1
-        },
-        1: {
-            'A': [1],             # 2
-            'B': [1, 2],          # 4
-            'C': [1, 2, 3],       # 6
-            'D': [1, 2, 3, 4],    # 9  2n
-        },
-        2: {
-            'A': [2],             # 2
-            'B': [2],             # 2
-            'C': [2, 3],          # 4
-            'D': [2, 3, 4],       # 6  2n
-        },
-        3: {
-            'A': [3, 2],          # 4
-            'B': [3],             # 2
-            'C': [3],             # 2
-            'D': [3, 4],          # 4  2n
-        },
-        4: {
-            'A': [4, 3, 2],       # 6
-            'B': [4, 3],          # 4
-            'C': [4],             # 2
-            'D': [4],             # 2  2n
-        },
-        5: {
-            'A': [5, 4, 3, 2],    # 8
-            'B': [5, 4, 3],       # 6
-            'C': [5, 4],          # 3
-            'D': [5],             # 2  2n
-        },
-        6: {
-            'A': [6, 5, 4, 3, 2], # 9
-            'B': [6, 5, 4, 3],    # 7
-            'C': [6, 5, 4],       # 5
-            'D': [6, 5],          # 3 2n - 1
-        },
+        0: {'A': [0, 1], 'B': [0, 1, 2], 'C': [0, 1, 2, 3], 'D': [0, 1, 2, 3, 4]},
+        1: {'A': [1], 'B': [1, 2], 'C': [1, 2, 3], 'D': [1, 2, 3, 4]},
+        2: {'A': [2], 'B': [2], 'C': [2, 3], 'D': [2, 3, 4]},
+        3: {'A': [3, 2], 'B': [3], 'C': [3], 'D': [3, 4]},
+        4: {'A': [4, 3, 2], 'B': [4, 3], 'C': [4], 'D': [4]},
+        5: {'A': [5, 4, 3, 2], 'B': [5, 4, 3], 'C': [5, 4], 'D': [5]},
+        6: {'A': [6, 5, 4, 3, 2], 'B': [6, 5, 4, 3], 'C': [6, 5, 4], 'D': [6, 5]}
     }
 
     def __init__(self, state: Dict = None, cost: int = 0):
@@ -107,13 +45,9 @@ class Burrow:
         return hash(tuple((k, tuple(v)) for k, v in sorted(self.state.items())))
 
     def move(self, from_area: str, from_pos: int, to_area: str, to_pos: int):
-        if self.state[to_area][to_pos] or from_area == to_area or \
-                to_area not in (self.state[from_area][from_pos], 'H'):
-            raise ValueError(f'Invalid move from {from_area}-{from_pos} to {to_area}-{to_pos}')
-        else:
-            self.state[to_area][to_pos] = self.state[from_area][from_pos]
-            self.state[from_area][from_pos] = None
-            self.state_hash = self._state_hash
+        self.state[to_area][to_pos] = self.state[from_area][from_pos]
+        self.state[from_area][from_pos] = None
+        self.state_hash = self._state_hash
 
     @property
     def is_a_winner(self):
@@ -142,7 +76,7 @@ class Burrow:
         return (hallway_length + room_position) * cls.AMPHIPOD_TYPES[amphipod_type]
 
     @property
-    def possible_moves(self) -> List:
+    def possible_moves(self) -> List[Any]:
         next_possible_states = []
         for hall_pos in range(len(self.state['H'])):
             amphipod_type = self.state['H'][hall_pos]
@@ -169,31 +103,41 @@ class Burrow:
 
 def find_path(burrow: Burrow) -> Burrow:
     queue = PriorityQueue()
+    visited = set()
     queue.put(burrow)
-    visited = defaultdict(bool)
 
     while queue:
         burrow = queue.get()
         if burrow.is_a_winner:
             return burrow
-        elif not visited[burrow.state_hash]:
-            print(f'{burrow.cost}', end='\r')
+        elif burrow.state_hash not in visited:
             for possible_move in burrow.possible_moves:
                 queue.put(possible_move)
-            visited[burrow.state_hash] = True
+            visited.add(burrow.state_hash)
 
 
-def load_data(infile_path: str) -> str:
+def load_data(infile_path: str) -> Dict:
     with open(infile_path, 'r', encoding='ascii') as infile:
-        return infile.readline().strip()
+        c = [re.match(r'\W*#+(\w)#(\w)#(\w)#(\w)#+', l).groups() for l in infile.readlines()[2:4]]
+        return {
+            'H': [None] * 7,
+            'A': [c[0][0], c[1][0]],
+            'B': [c[0][1], c[1][1]],
+            'C': [c[0][2], c[1][2]],
+            'D': [c[0][3], c[1][3]],
+        }
 
 
-def part_1(start_map: Dict) -> int:
+def part_1(infile_path: str) -> int:
+    start_map = load_data(infile_path)
     result = find_path(Burrow(start_map))
     return result.cost
 
 
-def part_2(start_map: Dict) -> int:
+def part_2(infile_path: str) -> int:
+    start_map = load_data(infile_path)
+    for c in PART_2_INSERTIONS:
+        start_map[c] = [start_map[c][0]] + PART_2_INSERTIONS[c] + [start_map[c][1]]
     result = find_path(Burrow(start_map))
     return result.cost
 
@@ -204,8 +148,8 @@ def show_moves(b):
 
 
 if __name__ == '__main__':
-    part1_answer = part_1(PART_1_FULL_MAP)
+    part1_answer = part_1(FULL_INPUT_FILE)
     print(f'Part 1: {part1_answer}')
 
-    part2_answer = part_2(PART_2_FULL_MAP)
+    part2_answer = part_2(FULL_INPUT_FILE)
     print(f'Part 2: {part2_answer}')
