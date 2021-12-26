@@ -49,7 +49,7 @@ class Burrow:
 
     @property
     def _state_hash(self):
-        return hash(tuple((k, tuple(v)) for k, v in sorted(self.state.items())))
+        return hash(tuple(tuple(v) for k, v in sorted(self.state.items())))
 
     @property
     def is_a_winner(self):
