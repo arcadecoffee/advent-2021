@@ -3,6 +3,8 @@ Advent of Code 2021 - Day 24
 https://adventofcode.com/2021/day/24
 """
 
+from typing import List
+
 DAY = '24'
 
 FULL_INPUT_FILE = f'../inputs/day{DAY}/input.full.txt'
@@ -11,9 +13,14 @@ TEST2_INPUT_FILE = f'../inputs/day{DAY}/input.test2.txt'
 TEST3_INPUT_FILE = f'../inputs/day{DAY}/input.test3txt'
 
 
-def load_data(infile_path: str) -> str:
+def load_data(infile_path: str) -> List[str]:
     with open(infile_path, 'r', encoding='ascii') as infile:
-        return infile.readline().strip()
+        return [l.strip() for l in infile.readlines()]
+
+
+class ArithmeticLogicUnit:
+    def __init__(self, w: int = 0, x: int = 0, y: int = 0, z: int = 0):
+        self._registers = {'w': w, 'x': x, 'y': y, 'z': z}
 
 
 def part_1(infile_path: str) -> int:
