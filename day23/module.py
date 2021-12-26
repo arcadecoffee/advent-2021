@@ -3,6 +3,7 @@ Advent of Code 2021 - Day 23
 https://adventofcode.com/2021/day/23
 """
 
+from collections import defaultdict
 from copy import deepcopy
 from queue import PriorityQueue
 from typing import Dict, List, Tuple
@@ -79,19 +80,14 @@ class Burrow:
     def __init__(self, state: Dict = None, cost: int = 0):
         self.state = deepcopy(state) if state else {}
         self.cost = cost
+        self.state_hash = self._state_hash
 
     def __lt__(self, other):
         return self.cost < other.cost
 
-    def __eq__(self, other):
-        return self.cost == other.cost and self.state == other.state
-
-    def __hash__(self):
-        return hash((tuple((k, tuple(v)) for k, v in sorted(self.state.items())), self.cost))
-
     @property
-    def state_hash(self):
-        return hash((k, tuple(v)) for k, v in sorted(self.state.items()))
+    def _state_hash(self):
+        return hash(tuple((k, tuple(v)) for k, v in sorted(self.state.items())))
 
     def move(self, from_area: str, from_pos: int, to_area: str, to_pos: int):
         if self.state[to_area][to_pos] or from_area == to_area or \
@@ -100,6 +96,7 @@ class Burrow:
         else:
             self.state[to_area][to_pos] = self.state[from_area][from_pos]
             self.state[from_area][from_pos] = None
+            self.state_hash = self._state_hash
 
     @property
     def is_a_winner(self):
@@ -156,16 +153,17 @@ class Burrow:
 def find_path(burrow: Burrow) -> Burrow:
     queue = PriorityQueue()
     queue.put(burrow)
-    visited = set()
+    visited = defaultdict(bool)
 
     while queue:
         burrow = queue.get()
         if burrow.is_a_winner:
             return burrow
-        elif burrow.state_hash not in visited:
+        elif not visited[burrow.state_hash]:
+            print(f'{burrow.cost}', end='\r')
             for possible_move in burrow.possible_moves:
                 queue.put(possible_move)
-            visited.add(burrow.state_hash)
+            visited[burrow.state_hash] = True
 
 
 def load_data(infile_path: str) -> str:
@@ -174,7 +172,7 @@ def load_data(infile_path: str) -> str:
 
 
 def part_1(start_map: Dict) -> int:
-    result, _ = find_path(Burrow(start_map))
+    result = find_path(Burrow(start_map))
     return result.cost
 
 
@@ -183,13 +181,14 @@ def part_2(infile_path: str) -> int:
     return 0
 
 
+def show_moves(b):
+    for i in range(len(b)):
+        print(f'{i} : {b[i].cost} : {b[i].state}')
+
+
 if __name__ == '__main__':
-    a = Burrow(PART_1_TEST_MAP)
-    # for i in [16, 4, 0, 4, 0, 2, 0, 0]:
-    #     a = a.possible_moves[i]
-    a.possible_moves
-    # part1_answer = part_1(FULL_INPUT_FILE)
-    # print(f'Part 1: {part1_answer}')
-    #
-    # part2_answer = part_2(FULL_INPUT_FILE)
-    # print(f'Part 2: {part2_answer}')
+    part1_answer = part_1(FULL_INPUT_FILE)
+    print(f'Part 1: {part1_answer}')
+
+    part2_answer = part_2(FULL_INPUT_FILE)
+    print(f'Part 2: {part2_answer}')
