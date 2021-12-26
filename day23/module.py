@@ -40,14 +40,16 @@ class Burrow:
     def __lt__(self, other):
         return self.cost < other.cost
 
+    @classmethod
+    def move_cost(cls, hallway_position: int, room_type: str, room_position: int,
+                  amphipod_type: str):
+        hallway_length = 2 * len(cls.PATHS[hallway_position][room_type])
+        hallway_length -= 1 if hallway_position in (0, 6) else 0
+        return (hallway_length + room_position) * cls.AMPHIPOD_TYPES[amphipod_type]
+
     @property
     def _state_hash(self):
         return hash(tuple((k, tuple(v)) for k, v in sorted(self.state.items())))
-
-    def move(self, from_area: str, from_pos: int, to_area: str, to_pos: int):
-        self.state[to_area][to_pos] = self.state[from_area][from_pos]
-        self.state[from_area][from_pos] = None
-        self.state_hash = self._state_hash
 
     @property
     def is_a_winner(self):
@@ -55,6 +57,35 @@ class Burrow:
             if not all(_ == amphipod_type for _ in self.state[amphipod_type]):
                 return False
         return True
+
+    @property
+    def possible_moves(self) -> List[Any]:
+        next_possible_states = []
+        for hall_pos in range(len(self.state['H'])):
+            amphipod_type = self.state['H'][hall_pos]
+            if amphipod_type and self.room_open(amphipod_type):
+                if self.path_to_room_clear(hall_pos, amphipod_type):
+                    room_pos = self.next_spot_in_room(amphipod_type)
+                    new_burrow = Burrow(self.state, self.cost)
+                    new_burrow.move('H', hall_pos, amphipod_type, room_pos)
+                    return [new_burrow]
+        for room in self.AMPHIPOD_TYPES:
+            if not self.room_open(room):
+                amphipod_type = [_ for _ in self.state[room] if _][0]
+                room_pos = self.state[room].index(amphipod_type)
+                for hall_pos in self.PATHS:
+                    if not self.state['H'][hall_pos] and self.path_to_room_clear(hall_pos, room):
+                        new_burrow = Burrow(self.state, self.cost)
+                        new_burrow.move(room, room_pos, 'H', hall_pos)
+                        next_possible_states.append(new_burrow)
+        return next_possible_states
+
+    def move(self, from_room: str, from_pos: int, to_room: str, to_pos: int):
+        self.cost += self.move_cost(from_pos, to_room, to_pos, to_room) if from_room == 'H' \
+            else self.move_cost(to_pos, from_room, from_pos, self.state[from_room][from_pos])
+        self.state[to_room][to_pos] = self.state[from_room][from_pos]
+        self.state[from_room][from_pos] = None
+        self.state_hash = self._state_hash
 
     def room_open(self, room: str) -> bool:
         return all(_ in (None, room) for _ in self.state[room])
@@ -67,38 +98,6 @@ class Burrow:
             if position != hallway_start and self.state['H'][position]:
                 return False
         return True
-
-    @classmethod
-    def move_cost(cls, hallway_position: int, room_type: str, room_position: int,
-                  amphipod_type: str):
-        hallway_length = 2 * len(cls.PATHS[hallway_position][room_type])
-        hallway_length -= 1 if hallway_position in (0, 6) else 0
-        return (hallway_length + room_position) * cls.AMPHIPOD_TYPES[amphipod_type]
-
-    @property
-    def possible_moves(self) -> List[Any]:
-        next_possible_states = []
-        for hall_pos in range(len(self.state['H'])):
-            amphipod_type = self.state['H'][hall_pos]
-            if amphipod_type and self.room_open(amphipod_type):
-                if self.path_to_room_clear(hall_pos, amphipod_type):
-                    room_pos = self.next_spot_in_room(amphipod_type)
-                    new_burrow = deepcopy(self)
-                    new_burrow.move('H', hall_pos, amphipod_type, room_pos)
-                    new_burrow.cost += self.move_cost(hall_pos, amphipod_type, room_pos,
-                                                      amphipod_type)
-                    return [new_burrow]
-        for room in self.AMPHIPOD_TYPES:
-            if not self.room_open(room):
-                amphipod_type = [_ for _ in self.state[room] if _][0]
-                room_pos = self.state[room].index(amphipod_type)
-                for hall_pos in self.PATHS:
-                    if not self.state['H'][hall_pos] and self.path_to_room_clear(hall_pos, room):
-                        new_burrow = Burrow(self.state, self.cost)
-                        new_burrow.move(room, room_pos, 'H', hall_pos)
-                        new_burrow.cost += self.move_cost(hall_pos, room, room_pos, amphipod_type)
-                        next_possible_states.append(new_burrow)
-        return next_possible_states
 
 
 def find_path(burrow: Burrow) -> Burrow:
