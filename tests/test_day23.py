@@ -24,5 +24,5 @@ def test_part_2():
 
 
 def test_part_2_full():
-    result = part_2(FULL_INPUT_FILE)
+    result = part_2(PART_2_FULL_MAP)
     assert result == 49742
