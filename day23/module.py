@@ -139,11 +139,6 @@ def part_2(infile_path: str) -> int:
     return result.cost
 
 
-def show_moves(b):
-    for i in range(len(b)):
-        print(f'{i} : {b[i].cost} : {b[i].state}')
-
-
 if __name__ == '__main__':
     part1_answer = part_1(FULL_INPUT_FILE)
     print(f'Part 1: {part1_answer}')
