@@ -2,7 +2,7 @@
 Tests for Day 24
 """
 
-from day24.module import ArithmeticLogicUnit, load_data, part_1, part_2, \
+from day24.module import ArithmeticLogicUnit, load_data, check_version_number, part_1, part_2, \
     FULL_INPUT_FILE, TEST1_INPUT_FILE, TEST2_INPUT_FILE, TEST3_INPUT_FILE
 
 
@@ -28,6 +28,12 @@ def test_alu_3():
     assert alu.x == 0
     assert alu.y == 1
     assert alu.z == 0
+
+
+def test_check_version_number():
+    instructions = load_data(FULL_INPUT_FILE)
+    assert check_version_number(instructions, 39494195799979)
+    assert check_version_number(instructions, 13161151139617)
 
 
 def test_part_1_full():

@@ -3,8 +3,7 @@ Advent of Code 2021 - Day 24
 https://adventofcode.com/2021/day/24
 """
 
-from collections import defaultdict
-from typing import Any, List
+from typing import List, Tuple
 
 DAY = '24'
 
@@ -14,13 +13,7 @@ TEST2_INPUT_FILE = f'../inputs/day{DAY}/input.test2.txt'
 TEST3_INPUT_FILE = f'../inputs/day{DAY}/input.test3.txt'
 
 
-def load_data(infile_path: str) -> List[str]:
-    with open(infile_path, 'r', encoding='ascii') as infile:
-        return [l.strip() for l in infile.readlines()]
-
-
 class ArithmeticLogicUnitRegister:
-
     def __set_name__(self, owner, name):
         self.name = name
 
@@ -62,57 +55,53 @@ def check_version_number(instructions: List[str], version_number: int):
     return not alu.z
 
 
-def working_area(infile_path: str) -> int:
+def find_digits(left: int, right: int, find_max: bool = True) -> Tuple[int, int]:
+    if find_max:
+        if left + right <= 0:
+            return 9, 9 + left + right
+        else:
+            return 9 - left - right, 9
+    else:
+        if left + right <= 0:
+            return 1 - left - right, 1
+        else:
+            return 1, 1 + left + right
+
+
+def calculate_version(instructions: List[str], find_max: bool = True) -> int:
     instruction_sets = []
-    for instruction in load_data(infile_path):
+    for instruction in instructions:
         if instruction.startswith('inp'):
             instruction_sets.append([])
         instruction_sets[-1].append(instruction)
 
-    alu = ArithmeticLogicUnit()
-    version_number = 13161151139617
-    inputs = [int(d) for d in list(str(version_number))]
-    instructions = [i for s in instruction_sets for i in s]
-    alu.execute(instructions, inputs)
+    version_number_digits: List = [None] * len(instruction_sets)
+    left_digit_stack = []
+    for i in range(len(instruction_sets)):
+        if instruction_sets[i][4] == 'div z 1':
+            left_digit_stack.append((i, instruction_sets[i]))
+        else:
+            left_i, left_instruction_set = left_digit_stack.pop()
+            left_increment = int(left_instruction_set[15].split(' ')[2])
+            right_increment = int(instruction_sets[i][5].split(' ')[2])
+            version_number_digits[left_i], version_number_digits[i] = \
+                find_digits(left_increment, right_increment, find_max)
+    return int(''.join([str(d) for d in version_number_digits]))
 
-    return alu.z
-    # ## This searches for max input for unique outputs....slows down after a while....
-    # z_states_1 = defaultdict(int)
-    # search_size = 5
-    # for inputs in [list(str(i)) for i in
-    #                range(10 ** search_size - 1, 10 ** (search_size - 1) - 1, -1)
-    #                if '0' not in str(i)]:
-    #     instructions = [i for s in instruction_sets[:search_size] for i in s]
-    #     alu = ArithmeticLogicUnit()
-    #     alu.execute(instructions, inputs)
-    #     z_states_1[alu.z] = max(int(''.join(inputs)), z_states_1[alu.z])
-    #
-    # ## This searches backwards....meh
-    # clues = defaultdict(dict)
-    # for z in range(10):
-    #     for i in range(1, 10):
-    #         alu = ArithmeticLogicUnit(z=z)
-    #         alu.execute(instruction_sets[13], [i])
-    #         if alu.z == 0:
-    #             clues[13][z] = {'z_out': alu.z, 'inp': i}
-    #
-    # for digit in range(12, 0 - 1, -1):
-    #     for z in range(200000):
-    #         for i in range(1, 10):
-    #             alu = ArithmeticLogicUnit(z=z)
-    #             alu.execute(instruction_sets[digit], [i])
-    #             if alu.z in clues[digit + 1]:
-    #                 clues[digit][z] = {'z_out': alu.z, 'inp': i}
+
+def load_data(infile_path: str) -> List[str]:
+    with open(infile_path, 'r', encoding='ascii') as infile:
+        return [line.strip() for line in infile.readlines()]
 
 
 def part_1(infile_path: str) -> int:
     data = load_data(infile_path)
-    return working_area(infile_path)
+    return calculate_version(data)
 
 
 def part_2(infile_path: str) -> int:
     data = load_data(infile_path)
-    return 0
+    return calculate_version(data, False)
 
 
 if __name__ == '__main__':
