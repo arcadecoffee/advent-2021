@@ -14,13 +14,13 @@ TEST3_INPUT_FILE = f'../inputs/day{DAY}/input.test3.txt'
 
 
 class ArithmeticLogicUnitRegister:
-    def __set_name__(self, owner, name):
+    def __set_name__(self, owner: object, name: str):
         self.name = name
 
-    def __get__(self, obj, objtype=None):
+    def __get__(self, obj: object, objtype=None) -> int:
         return getattr(obj, '_registers')[self.name]
 
-    def __set__(self, obj, value):
+    def __set__(self, obj: object, value: int):
         getattr(obj, '_registers')[self.name] = value
 
 
@@ -30,10 +30,10 @@ class ArithmeticLogicUnit:
     y = ArithmeticLogicUnitRegister()
     z = ArithmeticLogicUnitRegister()
 
-    def __init__(self, w: int = 0, x: int = 0, y: int = 0, z: int = 0):
+    def __init__(self, w: int = 0, x: int = 0, y: int = 0, z: int = 0) -> None:
         self._registers = {'w': w, 'x': x, 'y': y, 'z': z}
 
-    def execute(self, instructions: List[str], inputs: List[int] = None):
+    def execute(self, instructions: List[str], inputs: List[int] = None) -> None:
         inputs = inputs.copy() if inputs else []
         operations = {
             'inp': lambda a, b: int(inputs.pop(0)),
@@ -49,7 +49,7 @@ class ArithmeticLogicUnit:
             self._registers[arg_a] = (operations[operation])(arg_a, arg_b)
 
 
-def check_version_number(instructions: List[str], version_number: int):
+def check_version_number(instructions: List[str], version_number: int) -> bool:
     alu = ArithmeticLogicUnit()
     alu.execute(instructions, [int(d) for d in list(str(version_number))])
     return not alu.z
