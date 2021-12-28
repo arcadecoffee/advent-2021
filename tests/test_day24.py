@@ -30,18 +30,11 @@ def test_alu_3():
     assert alu.z == 0
 
 
-#
-#
-# def test_part_1_full():
-#     result = part_1(FULL_INPUT_FILE)
-#     assert result == 0
-#
-#
-# def test_part_2():
-#     result = part_2(TEST_INPUT_FILE)
-#     assert result == 0
-#
-#
-# def test_part_2_full():
-#     result = part_2(FULL_INPUT_FILE)
-#     assert result == 0
+def test_part_1_full():
+    result = part_1(FULL_INPUT_FILE)
+    assert result == 39494195799979
+
+
+def test_part_2_full():
+    result = part_2(FULL_INPUT_FILE)
+    assert result == 13161151139617
