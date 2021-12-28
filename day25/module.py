@@ -63,5 +63,5 @@ def part_1(infile_path: str) -> int:
 
 
 if __name__ == '__main__':
-    part1_answer = part_1(TEST_INPUT_FILE)
+    part1_answer = part_1(FULL_INPUT_FILE)
     print(f'Part 1: {part1_answer}')
